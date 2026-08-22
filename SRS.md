@@ -26,6 +26,8 @@ physical CUDA memory.
 | FR-07 | Expose capacity, usage, free, forgotten, CPU, and fragmentation metrics. | Snapshot assertions and CLI JSON test |
 | FR-08 | Provide a machine-readable CLI result. | `test_json_cli_output_is_machine_readable` |
 | FR-09 | Produce repeatable behavior for a supplied seed. | `test_seeded_allocator_is_reproducible` |
+| FR-10 | Retain an optional bounded trace and allow it to be cleared safely. | `test_trace_is_bounded_and_defensively_copied`, `test_trace_can_be_cleared` |
+| FR-11 | Compare the intentionally bad allocator with an honest reference model, including total resident memory. | `test_benchmark_report_is_json_serializable`, benchmark CLI |
 
 ## 4. Non-functional requirements
 
@@ -36,10 +38,10 @@ physical CUDA memory.
 | NFR-03 | Avoid dynamic execution, shell invocation, network access, and secret handling. | Static security scan and `SECURITY_TEST_REPORT.md` |
 | NFR-04 | Document the simulator boundary clearly. | README and this SRS |
 | NFR-05 | Keep the public API small and backward compatible within the 0.x release line. | README API example and changelog |
+| NFR-06 | Keep trace retention bounded by explicit configuration. | `trace_limit` validation and trace tests |
 
 ## 5. Out of scope
 
 Real CUDA bindings, performance optimization, production tensor storage,
 multi-process shared memory, authentication, and remote telemetry are out of
 scope for this release.
-

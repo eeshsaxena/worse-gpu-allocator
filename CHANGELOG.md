@@ -7,6 +7,14 @@
 - Added thread-safe state management and JSON CLI output.
 - Added a formal SRS, security policy, and security test report.
 
+## 0.3.0
+
+- Added bounded allocation tracing with defensive copies and clearing.
+- Added a reference allocator and comparison benchmark.
+- Added the `worse-gpu-benchmark` command and benchmark JSON output.
+- Added regression tests for tracing and benchmark reporting.
+- Added total resident memory to benchmark comparisons so CPU fallback is visible.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.

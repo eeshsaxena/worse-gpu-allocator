@@ -22,10 +22,17 @@ from typing import Dict, List, Literal
 
 
 __version__ = "0.2.0"
-__all__ = ["Allocation", "OutOfMemoryError", "WorseGPUAllocator", "__version__"]
+__all__ = [
+    "Allocation",
+    "OutOfMemoryError",
+    "TraceEvent",
+    "WorseGPUAllocator",
+    "__version__",
+]
 
 
 Device = Literal["gpu", "cpu"]
+TraceEvent = dict[str, int | str | bool]
 
 
 @dataclass(frozen=True)
@@ -65,6 +72,7 @@ class WorseGPUAllocator:
         gpu_probability: Chance that an allocation actually uses the GPU.
         forget_probability: Chance that ``free`` forgets to release a GPU block.
         seed: Seed for reproducible bad decisions.
+        trace_limit: Maximum number of events retained, or zero to disable tracing.
     """
 
     def __init__(
@@ -74,6 +82,7 @@ class WorseGPUAllocator:
         forget_probability: float = 0.20,
         fallback_on_oom: bool = True,
         max_request_bytes: int = 1 << 40,
+        trace_limit: int = 0,
         seed: int | None = None,
     ) -> None:
         if isinstance(gpu_capacity, bool) or not isinstance(gpu_capacity, int):
@@ -88,12 +97,17 @@ class WorseGPUAllocator:
             raise TypeError("max_request_bytes must be an integer")
         if max_request_bytes <= 0:
             raise ValueError("max_request_bytes must be positive")
+        if isinstance(trace_limit, bool) or not isinstance(trace_limit, int):
+            raise TypeError("trace_limit must be an integer")
+        if trace_limit < 0:
+            raise ValueError("trace_limit cannot be negative")
 
         self.gpu_capacity = gpu_capacity
         self.gpu_probability = gpu_probability
         self.forget_probability = forget_probability
         self.fallback_on_oom = fallback_on_oom
         self.max_request_bytes = max_request_bytes
+        self.trace_limit = trace_limit
         self._random = random.Random(seed)
         self._blocks: List[Block] = []
         self._allocations: Dict[int, Allocation] = {}
@@ -101,6 +115,8 @@ class WorseGPUAllocator:
         self.cpu_bytes = 0
         self._lock = RLock()
         self._owner_token = object()
+        self._trace_events: list[TraceEvent] = []
+        self._trace_sequence = 0
 
     def allocate(self, requested_bytes: int) -> Allocation:
         """Reserve memory, occasionally on the GPU, and return its handle."""
@@ -116,18 +132,26 @@ class WorseGPUAllocator:
 
         with self._lock:
             if self._random.random() >= self.gpu_probability:
-                return self._allocate_cpu(requested_bytes)
+                return self._allocate_cpu(requested_bytes, reason="probability")
 
             reserved_bytes = self._bad_rounding(requested_bytes)
             block_index = self._find_first_fit(reserved_bytes)
             if block_index is None:
                 if not self.fallback_on_oom:
+                    self._record_event(
+                        {
+                            "operation": "allocate_failed",
+                            "reason": "gpu_oom",
+                            "requested_bytes": requested_bytes,
+                            "device": "gpu",
+                        }
+                    )
                     raise OutOfMemoryError(
                         f"GPU request for {requested_bytes} bytes could not be reserved"
                     )
                 # A real allocator might compact or retry. This one gives up and
                 # quietly sends the work to CPU, which is worse in a different way.
-                return self._allocate_cpu(requested_bytes)
+                return self._allocate_cpu(requested_bytes, reason="gpu_oom")
 
             allocation = Allocation(
                 allocation_id=self._next_id,
@@ -140,6 +164,15 @@ class WorseGPUAllocator:
             self._next_id += 1
             self._blocks[block_index].allocation_id = allocation.allocation_id
             self._allocations[allocation.allocation_id] = allocation
+            self._record_event(
+                {
+                    "operation": "allocate",
+                    "allocation_id": allocation.allocation_id,
+                    "requested_bytes": requested_bytes,
+                    "reserved_bytes": reserved_bytes,
+                    "device": "gpu",
+                }
+            )
             return allocation
 
     def free(self, allocation: Allocation) -> bool:
@@ -163,15 +196,40 @@ class WorseGPUAllocator:
 
             if current.device == "cpu":
                 self.cpu_bytes -= current.reserved_bytes
+                self._record_event(
+                    {
+                        "operation": "free",
+                        "allocation_id": current.allocation_id,
+                        "released": True,
+                        "device": "cpu",
+                    }
+                )
                 return True
 
             block = self._blocks[current.block_index]
             if self._random.random() < self.forget_probability:
                 block.allocation_id = None
                 block.forgotten = True
+                self._record_event(
+                    {
+                        "operation": "free",
+                        "allocation_id": current.allocation_id,
+                        "released": False,
+                        "device": "gpu",
+                        "reason": "forgotten",
+                    }
+                )
                 return False
 
             block.allocation_id = None
+            self._record_event(
+                {
+                    "operation": "free",
+                    "allocation_id": current.allocation_id,
+                    "released": True,
+                    "device": "gpu",
+                }
+            )
             return True
 
     def snapshot(self) -> dict[str, int | float]:
@@ -196,10 +254,23 @@ class WorseGPUAllocator:
                 "gpu_blocks": len(self._blocks),
                 "cpu_bytes": self.cpu_bytes,
                 "active_allocations": len(self._allocations),
+                "trace_events": len(self._trace_events),
                 "fragmentation": round(1 - (free / reserved), 3) if reserved else 0.0,
             }
 
-    def _allocate_cpu(self, requested_bytes: int) -> Allocation:
+    def trace(self) -> tuple[TraceEvent, ...]:
+        """Return a copy of the bounded event trace."""
+
+        with self._lock:
+            return tuple(dict(event) for event in self._trace_events)
+
+    def clear_trace(self) -> None:
+        """Discard all retained trace events."""
+
+        with self._lock:
+            self._trace_events.clear()
+
+    def _allocate_cpu(self, requested_bytes: int, reason: str) -> Allocation:
         allocation = Allocation(
             allocation_id=self._next_id,
             requested_bytes=requested_bytes,
@@ -211,7 +282,27 @@ class WorseGPUAllocator:
         self._next_id += 1
         self._allocations[allocation.allocation_id] = allocation
         self.cpu_bytes += requested_bytes
+        self._record_event(
+            {
+                "operation": "allocate",
+                "allocation_id": allocation.allocation_id,
+                "requested_bytes": requested_bytes,
+                "reserved_bytes": requested_bytes,
+                "device": "cpu",
+                "reason": reason,
+            }
+        )
         return allocation
+
+    def _record_event(self, event: TraceEvent) -> None:
+        if self.trace_limit == 0:
+            return
+        self._trace_sequence += 1
+        event = dict(event)
+        event["sequence"] = self._trace_sequence
+        if len(self._trace_events) >= self.trace_limit:
+            self._trace_events.pop(0)
+        self._trace_events.append(event)
 
     @staticmethod
     def _validate_probability(name: str, value: float) -> None:

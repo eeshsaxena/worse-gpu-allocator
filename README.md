@@ -25,11 +25,28 @@ Use a different deterministic run with `python demo.py --seed 42 --steps 30`.
 Use `python demo.py --delay 0` for a fast run.
 Use `python demo.py --steps 30 --delay 0 --json` for machine-readable metrics.
 
+Compare it with a small sane reference allocator:
+
+```text
+python benchmark.py --steps 100
+python benchmark.py --steps 100 --json
+```
+
+The library can retain a bounded event trace for teaching tools and dashboards:
+
+```python
+allocator = WorseGPUAllocator(seed=7, trace_limit=100)
+allocation = allocator.allocate(4096)
+print(allocator.trace())
+allocator.free(allocation)
+```
+
 ## Install it
 
 ```text
 python -m pip install .
 worse-gpu-demo --steps 30 --seed 42
+worse-gpu-benchmark --steps 100 --json
 ```
 
 The package has no runtime dependencies. It does not access CUDA, PyTorch, or
