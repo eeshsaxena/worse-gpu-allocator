@@ -23,6 +23,7 @@ python demo.py
 
 Use a different deterministic run with `python demo.py --seed 42 --steps 30`.
 Use `python demo.py --delay 0` for a fast run.
+Use `python demo.py --steps 30 --delay 0 --json` for machine-readable metrics.
 
 ## Install it
 
@@ -62,3 +63,9 @@ device memory or require PyTorch/CUDA.
 The first release is aimed at workshops, allocator demos, and test fixtures.
 The next release can add trace export, side-by-side comparisons with a sane
 allocator, and a browser dashboard without changing the core API.
+
+## Requirements and security
+
+See [SRS.md](SRS.md) for the requirements and acceptance matrix. See
+[SECURITY.md](SECURITY.md) and [SECURITY_TEST_REPORT.md](SECURITY_TEST_REPORT.md)
+for the threat model and the latest local security checks.

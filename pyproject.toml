@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "worse-gpu-allocator"
-version = "0.1.0"
+version = "0.2.0"
 description = "A deliberately bad, dependency-free GPU memory allocator simulator"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,4 +25,3 @@ worse-gpu-demo = "demo:main"
 
 [tool.setuptools]
 py-modules = ["demo", "worse_gpu_allocator"]
-
