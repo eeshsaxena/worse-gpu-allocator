@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worse-gpu-allocator"
+version = "0.1.0"
+description = "A deliberately bad, dependency-free GPU memory allocator simulator"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "A Worse GPU Memory Allocator contributors" }]
+keywords = ["gpu", "cuda", "memory", "allocator", "education", "simulation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.scripts]
+worse-gpu-demo = "demo:main"
+
+[tool.setuptools]
+py-modules = ["demo", "worse_gpu_allocator"]
+

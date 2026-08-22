@@ -1,0 +1,64 @@
+# A Worse GPU Memory Allocator
+
+> It allocates memory on the GPU (sometimes).
+
+An intentionally bad, dependency-free GPU memory allocator simulator. It is a
+small joke project with a useful teaching and benchmarking surface. It makes
+allocator tradeoffs visible without requiring a CUDA-capable machine.
+
+## The features nobody asked for
+
+- 65% chance that an allocation uses the GPU.
+- CPU fallback when the GPU is full, or when the allocator simply feels like it.
+- Randomly oversized buckets that waste memory.
+- No block splitting and no coalescing, for maximum fragmentation.
+- A 20% chance that `free()` forgets to release GPU memory.
+- A linear scan, because performance is a suggestion.
+
+## Run it
+
+```text
+python demo.py
+```
+
+Use a different deterministic run with `python demo.py --seed 42 --steps 30`.
+Use `python demo.py --delay 0` for a fast run.
+
+## Install it
+
+```text
+python -m pip install .
+worse-gpu-demo --steps 30 --seed 42
+```
+
+The package has no runtime dependencies. It does not access CUDA, PyTorch, or
+any physical device memory.
+
+## Use it as a library
+
+```python
+from worse_gpu_allocator import WorseGPUAllocator
+
+allocator = WorseGPUAllocator(seed=7)
+tensor_memory = allocator.allocate(2 * 1024 * 1024)
+print(tensor_memory.device)  # "gpu" ... probably
+allocator.free(tensor_memory)
+```
+
+For callers that want a hard failure instead of the default CPU fallback, use
+`WorseGPUAllocator(fallback_on_oom=False)`.
+
+## Test it
+
+```text
+python -m unittest -v
+```
+
+This project simulates allocation; it intentionally does not allocate real
+device memory or require PyTorch/CUDA.
+
+## Product direction
+
+The first release is aimed at workshops, allocator demos, and test fixtures.
+The next release can add trace export, side-by-side comparisons with a sane
+allocator, and a browser dashboard without changing the core API.
