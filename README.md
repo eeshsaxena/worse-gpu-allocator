@@ -39,6 +39,7 @@ allocator = WorseGPUAllocator(seed=7, trace_limit=100)
 allocation = allocator.allocate(4096)
 print(allocator.trace())
 allocator.free(allocation)
+allocator.validate_invariants()
 ```
 
 ## Install it

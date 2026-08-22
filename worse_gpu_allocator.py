@@ -258,6 +258,45 @@ class WorseGPUAllocator:
                 "fragmentation": round(1 - (free / reserved), 3) if reserved else 0.0,
             }
 
+    def validate_invariants(self) -> None:
+        """Raise ``RuntimeError`` if internal accounting has become invalid.
+
+        This is intentionally public so tests and teaching tools can verify
+        allocator state after a workload without relying on private fields.
+        """
+
+        with self._lock:
+            reserved = sum(block.size for block in self._blocks)
+            if reserved > self.gpu_capacity:
+                raise RuntimeError("GPU reservations exceed capacity")
+            if self.cpu_bytes < 0:
+                raise RuntimeError("CPU accounting is negative")
+            if len(self._trace_events) > self.trace_limit:
+                raise RuntimeError("trace exceeds configured limit")
+
+            block_ids = {
+                block.allocation_id
+                for block in self._blocks
+                if block.allocation_id is not None
+            }
+            gpu_ids = {
+                allocation.allocation_id
+                for allocation in self._allocations.values()
+                if allocation.device == "gpu"
+            }
+            if block_ids != gpu_ids:
+                raise RuntimeError("GPU block and allocation indexes disagree")
+
+            for allocation in self._allocations.values():
+                if allocation.device == "cpu":
+                    if allocation.block_index != -1:
+                        raise RuntimeError("CPU allocation has a GPU block index")
+                    continue
+                if not 0 <= allocation.block_index < len(self._blocks):
+                    raise RuntimeError("GPU allocation has an invalid block index")
+                if self._blocks[allocation.block_index].allocation_id != allocation.allocation_id:
+                    raise RuntimeError("GPU allocation points to the wrong block")
+
     def trace(self) -> tuple[TraceEvent, ...]:
         """Return a copy of the bounded event trace."""
 

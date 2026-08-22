@@ -28,6 +28,7 @@ physical CUDA memory.
 | FR-09 | Produce repeatable behavior for a supplied seed. | `test_seeded_allocator_is_reproducible` |
 | FR-10 | Retain an optional bounded trace and allow it to be cleared safely. | `test_trace_is_bounded_and_defensively_copied`, `test_trace_can_be_cleared` |
 | FR-11 | Compare the intentionally bad allocator with an honest reference model, including total resident memory. | `test_benchmark_report_is_json_serializable`, benchmark CLI |
+| FR-12 | Expose an accounting invariant check for integration tests and teaching tools. | Robustness property tests |
 
 ## 4. Non-functional requirements
 
@@ -39,6 +40,7 @@ physical CUDA memory.
 | NFR-04 | Document the simulator boundary clearly. | README and this SRS |
 | NFR-05 | Keep the public API small and backward compatible within the 0.x release line. | README API example and changelog |
 | NFR-06 | Keep trace retention bounded by explicit configuration. | `trace_limit` validation and trace tests |
+| NFR-07 | Reject invalid CLI values before starting a workload. | CLI validation tests |
 
 ## 5. Out of scope
 

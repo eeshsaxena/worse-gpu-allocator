@@ -19,13 +19,27 @@ def format_bytes(value: int | float) -> str:
     return f"{number:,.1f} GiB"
 
 
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be positive")
+    return parsed
+
+
+def _non_negative_float(value: str) -> float:
+    parsed = float(value)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("must be zero or positive")
+    return parsed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--steps", type=int, default=18)
+    parser.add_argument("--steps", type=_positive_int, default=18)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument(
         "--delay",
-        type=float,
+        type=_non_negative_float,
         default=0.04,
         help="Seconds between rows, set to 0 for a fast run",
     )

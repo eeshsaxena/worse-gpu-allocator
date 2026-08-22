@@ -19,8 +19,9 @@ No physical GPU or remote service was targeted.
 - Benchmark JSON output was parsed and its total resident memory comparison was verified.
 - Source was reviewed for `eval`, `exec`, dynamic imports, shell calls,
   sockets, HTTP clients, credential reads, and unsafe deserialization.
-- The 17-test suite passed locally.
+- The 21-test suite passed locally.
 - GitHub Actions ran the test suite on Python 3.10, 3.11, 3.12, and 3.13.
+- CI uses read-only repository permissions and a five-minute job timeout.
 
 ## Result
 

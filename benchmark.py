@@ -50,9 +50,10 @@ class ReferenceGPUAllocator:
         return allocation
 
     def free(self, allocation: ReferenceAllocation) -> None:
-        current = self._allocations.pop(allocation.allocation_id, None)
+        current = self._allocations.get(allocation.allocation_id)
         if current is not allocation:
             raise KeyError(f"unknown allocation {allocation.allocation_id}")
+        self._allocations.pop(allocation.allocation_id)
         if current.device == "gpu":
             self.gpu_used -= current.requested_bytes
         else:

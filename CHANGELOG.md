@@ -15,6 +15,15 @@
 - Added regression tests for tracing and benchmark reporting.
 - Added total resident memory to benchmark comparisons so CPU fallback is visible.
 
+## 0.4.0
+
+- Added public invariant validation for integration tests and teaching tools.
+- Added randomized workload tests covering 4,000 allocator operations.
+- Added atomic strict OOM regression coverage.
+- Added safe CLI rejection for zero and negative workload sizes.
+- Fixed a reference allocator cross-free state corruption edge case.
+- Hardened CI with current Node 24 action lines, read-only permissions, and a timeout.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.
