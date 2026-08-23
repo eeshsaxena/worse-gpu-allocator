@@ -46,6 +46,7 @@ physical CUDA memory.
 | NFR-10 | Bound CLI and programmatic benchmark workloads to prevent runaway execution. | Workload cap tests |
 | NFR-11 | Keep allocator configuration and accounting read-only after construction. | Configuration mutation tests |
 | NFR-12 | Bound CLI delay values to prevent accidental long-running processes. | Delay cap tests |
+| NFR-13 | Enforce linting, strict typing, package installation, and installed CLI checks in CI. | GitHub Actions quality and matrix jobs |
 
 ## 5. Out of scope
 

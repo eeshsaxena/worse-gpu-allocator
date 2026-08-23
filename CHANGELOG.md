@@ -48,6 +48,13 @@
 - Added explicit reference allocator handle validation.
 - Added regression tests for runaway delays and invalid reference handles.
 
+## 0.9.0
+
+- Added pinned development quality tools.
+- Enforced Ruff and strict mypy in CI.
+- Replaced source-only CLI smoke tests with installed command checks.
+- Fixed the remaining strict typing gap in reproducibility tests.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.

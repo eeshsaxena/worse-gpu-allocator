@@ -78,6 +78,14 @@ For callers that want a hard failure instead of the default CPU fallback, use
 python -m unittest -v
 ```
 
+For contributor checks, install the development tools and run:
+
+```text
+python -m pip install ".[dev]"
+ruff check .
+mypy --strict worse_gpu_allocator.py benchmark.py demo.py test_worse_gpu_allocator.py test_security.py test_features.py test_robustness.py test_fuzz.py
+```
+
 This project simulates allocation; it intentionally does not allocate real
 device memory or require PyTorch/CUDA.
 

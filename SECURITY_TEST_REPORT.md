@@ -28,6 +28,7 @@ No physical GPU or remote service was targeted.
   sockets, HTTP clients, credential reads, and unsafe deserialization.
 - The 30-test suite passed locally, including 54,000 randomized operations.
 - Ruff and mypy reported no findings across product and test code.
+- CI installs the package and enforces Ruff plus strict mypy on every change.
 - GitHub Actions ran the test suite on Python 3.10, 3.11, 3.12, and 3.13.
 - CI uses read-only repository permissions and a five-minute job timeout.
 

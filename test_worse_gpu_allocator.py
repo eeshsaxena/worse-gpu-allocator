@@ -6,9 +6,9 @@ from worse_gpu_allocator import OutOfMemoryError, WorseGPUAllocator
 
 class WorseGPUAllocatorTests(unittest.TestCase):
     def test_seeded_allocator_is_reproducible(self) -> None:
-        def run():
+        def run() -> tuple[list[str], dict[str, int | float]]:
             allocator = WorseGPUAllocator(gpu_capacity=10_000, seed=4)
-            result = []
+            result: list[str] = []
             for size in (100, 700, 2_000, 300, 900):
                 result.append(allocator.allocate(size).device)
             return result, allocator.snapshot()

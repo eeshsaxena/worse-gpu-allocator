@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from threading import RLock
 from typing import Literal
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 MAX_TRACE_LIMIT = 1_000_000
 __all__ = [
     "MAX_TRACE_LIMIT",
