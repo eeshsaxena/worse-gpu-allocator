@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
+from typing import TypedDict
 
-from demo import format_bytes
+from demo import MAX_STEPS, format_bytes
 from worse_gpu_allocator import Allocation, WorseGPUAllocator
 
 
@@ -15,6 +16,17 @@ class ReferenceAllocation:
     allocation_id: int
     requested_bytes: int
     device: str
+
+
+Stats = dict[str, int | float]
+
+
+class BenchmarkReport(TypedDict):
+    config: dict[str, int]
+    workload: dict[str, int]
+    worse: Stats
+    reference: Stats
+    difference: Stats
 
 
 class ReferenceGPUAllocator:
@@ -59,7 +71,7 @@ class ReferenceGPUAllocator:
         else:
             self.cpu_bytes -= current.requested_bytes
 
-    def snapshot(self) -> dict[str, int | float]:
+    def snapshot(self) -> Stats:
         return {
             "gpu_capacity": self.capacity,
             "gpu_reserved": self.gpu_used,
@@ -79,13 +91,15 @@ def run_benchmark(
     steps: int = 100,
     seed: int = 7,
     capacity: int = 32 * 1024 * 1024,
-) -> dict[str, object]:
+) -> BenchmarkReport:
     """Run the same workload through both allocators and return a report."""
 
     if isinstance(steps, bool) or not isinstance(steps, int):
         raise TypeError("steps must be an integer")
     if steps <= 0:
         raise ValueError("steps must be positive")
+    if steps > MAX_STEPS:
+        raise ValueError(f"steps must be no greater than {MAX_STEPS}")
 
     worse = WorseGPUAllocator(
         gpu_capacity=capacity,
@@ -130,6 +144,10 @@ def _positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
         raise argparse.ArgumentTypeError("must be positive")
+    if parsed > MAX_STEPS:
+        raise argparse.ArgumentTypeError(
+            f"must be no greater than {MAX_STEPS}"
+        )
     return parsed
 
 

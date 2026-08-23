@@ -15,17 +15,16 @@ machine and keeps the project useful in tests and demos.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import random
+from dataclasses import dataclass, field
 from threading import RLock
-from typing import Dict, List, Literal
+from typing import Literal
 
-
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 MAX_TRACE_LIMIT = 1_000_000
 __all__ = [
-    "Allocation",
     "MAX_TRACE_LIMIT",
+    "Allocation",
     "OutOfMemoryError",
     "TraceEvent",
     "WorseGPUAllocator",
@@ -113,8 +112,8 @@ class WorseGPUAllocator:
         self.max_request_bytes = max_request_bytes
         self.trace_limit = trace_limit
         self._random = random.Random(seed)
-        self._blocks: List[Block] = []
-        self._allocations: Dict[int, Allocation] = {}
+        self._blocks: list[Block] = []
+        self._allocations: dict[int, Allocation] = {}
         self._next_id = 1
         self.cpu_bytes = 0
         self._lock = RLock()

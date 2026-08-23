@@ -9,8 +9,10 @@ import time
 
 from worse_gpu_allocator import WorseGPUAllocator
 
+MAX_STEPS = 100_000
 
-def format_bytes(value: int | float) -> str:
+
+def format_bytes(value: float) -> str:
     units = ("B", "KiB", "MiB", "GiB")
     number = float(value)
     for unit in units:
@@ -24,6 +26,10 @@ def _positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
         raise argparse.ArgumentTypeError("must be positive")
+    if parsed > MAX_STEPS:
+        raise argparse.ArgumentTypeError(
+            f"must be no greater than {MAX_STEPS}"
+        )
     return parsed
 
 
@@ -91,9 +97,10 @@ def main() -> None:
     else:
         print("\nFinal state:")
         for key, value in final_stats.items():
-            if key.endswith("bytes") or key.endswith("reserved") or key.endswith("used") or key.endswith("free") or key.endswith("forgotten") or key.endswith("unreserved"):
-                value = format_bytes(value)
-            print(f"  {key:>18}: {value}")
+            display_value: str | int | float = value
+            if key.endswith(("bytes", "reserved", "used", "free", "forgotten", "unreserved")):
+                display_value = format_bytes(value)
+            print(f"  {key:>18}: {display_value}")
 
 
 if __name__ == "__main__":

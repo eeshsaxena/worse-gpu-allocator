@@ -31,6 +31,12 @@
 - Expanded adversarial and randomized testing coverage.
 - Fixed stale module version metadata before distribution.
 
+## 0.6.0
+
+- Added a 100,000 step cap to CLI and programmatic benchmark workloads.
+- Added regression coverage for runaway workload rejection.
+- Fixed module and package version metadata to `0.6.0`.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.

@@ -44,6 +44,7 @@ allocator.validate_invariants()
 
 Trace retention is capped at one million events. Set `trace_limit=0` to keep
 no events.
+CLI workloads are capped at 100,000 steps to prevent accidental runaway runs.
 
 ## Install it
 

@@ -1,13 +1,12 @@
 import json
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import replace
 import subprocess
 import sys
 import unittest
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 
 from worse_gpu_allocator import Allocation, WorseGPUAllocator
-
 
 ROOT = Path(__file__).parent
 
@@ -16,9 +15,8 @@ class SecurityAndRobustnessTests(unittest.TestCase):
     def test_non_integer_requests_are_rejected(self) -> None:
         allocator = WorseGPUAllocator(seed=1)
         for value in (1.5, "1024", None, True):
-            with self.subTest(value=value):
-                with self.assertRaises(TypeError):
-                    allocator.allocate(value)  # type: ignore[arg-type]
+            with self.subTest(value=value), self.assertRaises(TypeError):
+                allocator.allocate(value)  # type: ignore[arg-type]
 
     def test_request_limit_prevents_resource_abuse(self) -> None:
         allocator = WorseGPUAllocator(max_request_bytes=1024, seed=1)

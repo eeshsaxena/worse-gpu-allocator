@@ -1,12 +1,11 @@
 import json
-from pathlib import Path
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 from benchmark import run_benchmark
 from worse_gpu_allocator import WorseGPUAllocator
-
 
 ROOT = Path(__file__).parent
 

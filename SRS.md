@@ -43,6 +43,7 @@ physical CUDA memory.
 | NFR-07 | Reject invalid CLI values before starting a workload. | CLI validation tests |
 | NFR-08 | Bound trace retention with a hard maximum and preserve balanced accounting under randomized workloads. | Fuzz and invariant tests |
 | NFR-09 | Keep the module version synchronized with package release metadata. | Version regression test |
+| NFR-10 | Bound CLI and programmatic benchmark workloads to prevent runaway execution. | Workload cap tests |
 
 ## 5. Out of scope
 

@@ -1,19 +1,30 @@
 import random
-from pathlib import Path
+import re
 import subprocess
 import sys
 import unittest
+from pathlib import Path
 
 from benchmark import ReferenceGPUAllocator
-from worse_gpu_allocator import MAX_TRACE_LIMIT, WorseGPUAllocator, __version__
-
+from demo import MAX_STEPS
+from worse_gpu_allocator import (
+    MAX_TRACE_LIMIT,
+    Allocation,
+    WorseGPUAllocator,
+    __version__,
+)
 
 ROOT = Path(__file__).parent
 
 
 class RobustnessTests(unittest.TestCase):
     def test_module_version_matches_current_release(self) -> None:
-        self.assertEqual(__version__, "0.5.0")
+        self.assertEqual(__version__, "0.6.0")
+        metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        match = re.search(r'^version = "([^"]+)"$', metadata, re.MULTILINE)
+        if match is None:
+            self.fail("pyproject.toml has no project version")
+        self.assertEqual(match.group(1), __version__)
 
     def test_trace_limit_has_a_hard_cap(self) -> None:
         with self.assertRaises(ValueError):
@@ -30,7 +41,7 @@ class RobustnessTests(unittest.TestCase):
                     trace_limit=32,
                     seed=seed,
                 )
-                live = []
+                live: list[Allocation] = []
                 for _ in range(200):
                     if live and chooser.random() < 0.45:
                         allocator.free(live.pop(chooser.randrange(len(live))))
@@ -78,9 +89,23 @@ class RobustnessTests(unittest.TestCase):
                     cwd=ROOT,
                     capture_output=True,
                     text=True,
+                    check=False,
                 )
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("must be positive", result.stderr)
+
+    def test_cli_rejects_unbounded_workloads(self) -> None:
+        for script in ("demo.py", "benchmark.py"):
+            with self.subTest(script=script):
+                result = subprocess.run(
+                    [sys.executable, script, "--steps", str(MAX_STEPS + 1)],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("no greater", result.stderr)
 
     def test_cli_rejects_non_finite_delay(self) -> None:
         for value in ("nan", "inf", "-inf"):
@@ -90,6 +115,7 @@ class RobustnessTests(unittest.TestCase):
                     cwd=ROOT,
                     capture_output=True,
                     text=True,
+                    check=False,
                 )
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("must be finite", result.stderr)

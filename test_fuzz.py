@@ -1,10 +1,16 @@
 import random
 import unittest
 
-from worse_gpu_allocator import WorseGPUAllocator
+from benchmark import run_benchmark
+from demo import MAX_STEPS
+from worse_gpu_allocator import Allocation, WorseGPUAllocator
 
 
 class FuzzWorkloadTests(unittest.TestCase):
+    def test_programmatic_benchmark_rejects_unbounded_workloads(self) -> None:
+        with self.assertRaises(ValueError):
+            run_benchmark(steps=MAX_STEPS + 1)
+
     def test_many_seeded_adversarial_workloads(self) -> None:
         for seed in range(100):
             with self.subTest(seed=seed):
@@ -16,7 +22,7 @@ class FuzzWorkloadTests(unittest.TestCase):
                     trace_limit=64,
                     seed=seed,
                 )
-                live = []
+                live: list[Allocation] = []
                 for _ in range(500):
                     if live and chooser.random() < 0.5:
                         handle = live.pop(chooser.randrange(len(live)))
@@ -40,4 +46,3 @@ class FuzzWorkloadTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
