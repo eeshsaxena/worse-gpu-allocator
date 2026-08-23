@@ -62,6 +62,8 @@ class ReferenceGPUAllocator:
         return allocation
 
     def free(self, allocation: ReferenceAllocation) -> None:
+        if not isinstance(allocation, ReferenceAllocation):
+            raise TypeError("allocation must be a ReferenceAllocation handle")
         current = self._allocations.get(allocation.allocation_id)
         if current is not allocation:
             raise KeyError(f"unknown allocation {allocation.allocation_id}")

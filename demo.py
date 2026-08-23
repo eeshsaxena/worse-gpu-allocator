@@ -10,6 +10,7 @@ import time
 from worse_gpu_allocator import WorseGPUAllocator
 
 MAX_STEPS = 100_000
+MAX_DELAY_SECONDS = 60.0
 
 
 def format_bytes(value: float) -> str:
@@ -37,6 +38,10 @@ def _non_negative_float(value: str) -> float:
     parsed = float(value)
     if not math.isfinite(parsed) or parsed < 0:
         raise argparse.ArgumentTypeError("must be finite and zero or positive")
+    if parsed > MAX_DELAY_SECONDS:
+        raise argparse.ArgumentTypeError(
+            f"must be no greater than {MAX_DELAY_SECONDS:g} seconds"
+        )
     return parsed
 
 

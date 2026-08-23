@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from benchmark import ReferenceGPUAllocator
-from demo import MAX_STEPS
+from demo import MAX_DELAY_SECONDS, MAX_STEPS
 from worse_gpu_allocator import (
     MAX_TRACE_LIMIT,
     Allocation,
@@ -19,7 +19,7 @@ ROOT = Path(__file__).parent
 
 class RobustnessTests(unittest.TestCase):
     def test_module_version_matches_current_release(self) -> None:
-        self.assertEqual(__version__, "0.7.0")
+        self.assertEqual(__version__, "0.8.0")
         metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         match = re.search(r'^version = "([^"]+)"$', metadata, re.MULTILINE)
         if match is None:
@@ -134,6 +134,23 @@ class RobustnessTests(unittest.TestCase):
                 )
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("must be finite", result.stderr)
+
+    def test_cli_rejects_runaway_delay(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "demo.py",
+                "--steps",
+                "1",
+                f"--delay={MAX_DELAY_SECONDS + 1}",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no greater", result.stderr)
 
 
 if __name__ == "__main__":

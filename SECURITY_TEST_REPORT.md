@@ -19,12 +19,14 @@ No physical GPU or remote service was targeted.
 - Trace limits above one million events and non-finite CLI delays were rejected.
 - CLI and programmatic benchmark workloads above 100,000 steps were rejected.
 - Configuration and accounting mutation attempts were rejected.
+- Finite but excessive CLI delays were rejected before execution.
+- Reference allocator non-handle input was rejected with a type error.
 - Benchmark JSON output was parsed and its total resident memory comparison was verified.
 - Randomized workloads repeatedly checked balanced CPU and GPU accounting.
 - The module version was checked against the release version to prevent stale-version distribution bugs.
 - Source was reviewed for `eval`, `exec`, dynamic imports, shell calls,
   sockets, HTTP clients, credential reads, and unsafe deserialization.
-- The 28-test suite passed locally, including 54,000 randomized operations.
+- The 30-test suite passed locally, including 54,000 randomized operations.
 - Ruff and mypy reported no findings across product and test code.
 - GitHub Actions ran the test suite on Python 3.10, 3.11, 3.12, and 3.13.
 - CI uses read-only repository permissions and a five-minute job timeout.

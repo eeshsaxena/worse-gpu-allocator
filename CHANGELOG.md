@@ -42,6 +42,12 @@
 - Made allocator configuration and CPU accounting read-only after construction.
 - Added mutation-attack regression coverage.
 
+## 0.8.0
+
+- Added a 60 second per-step CLI delay cap.
+- Added explicit reference allocator handle validation.
+- Added regression tests for runaway delays and invalid reference handles.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.
