@@ -16,10 +16,13 @@ No physical GPU or remote service was targeted.
 - Concurrent allocate and free operations preserved accounting invariants.
 - CLI JSON output was parsed without executing content.
 - Trace retention was bounded and returned through defensive copies.
+- Trace limits above one million events and non-finite CLI delays were rejected.
 - Benchmark JSON output was parsed and its total resident memory comparison was verified.
+- Randomized workloads repeatedly checked balanced CPU and GPU accounting.
+- The module version was checked against the release version to prevent stale-version distribution bugs.
 - Source was reviewed for `eval`, `exec`, dynamic imports, shell calls,
   sockets, HTTP clients, credential reads, and unsafe deserialization.
-- The 21-test suite passed locally.
+- The 25-test suite passed locally, including 50,000 randomized operations.
 - GitHub Actions ran the test suite on Python 3.10, 3.11, 3.12, and 3.13.
 - CI uses read-only repository permissions and a five-minute job timeout.
 

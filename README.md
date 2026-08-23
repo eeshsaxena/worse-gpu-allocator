@@ -42,6 +42,9 @@ allocator.free(allocation)
 allocator.validate_invariants()
 ```
 
+Trace retention is capped at one million events. Set `trace_limit=0` to keep
+no events.
+
 ## Install it
 
 ```text

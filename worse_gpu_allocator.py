@@ -21,9 +21,11 @@ from threading import RLock
 from typing import Dict, List, Literal
 
 
-__version__ = "0.2.0"
+__version__ = "0.5.0"
+MAX_TRACE_LIMIT = 1_000_000
 __all__ = [
     "Allocation",
+    "MAX_TRACE_LIMIT",
     "OutOfMemoryError",
     "TraceEvent",
     "WorseGPUAllocator",
@@ -101,6 +103,8 @@ class WorseGPUAllocator:
             raise TypeError("trace_limit must be an integer")
         if trace_limit < 0:
             raise ValueError("trace_limit cannot be negative")
+        if trace_limit > MAX_TRACE_LIMIT:
+            raise ValueError(f"trace_limit cannot exceed {MAX_TRACE_LIMIT}")
 
         self.gpu_capacity = gpu_capacity
         self.gpu_probability = gpu_probability
@@ -273,6 +277,31 @@ class WorseGPUAllocator:
                 raise RuntimeError("CPU accounting is negative")
             if len(self._trace_events) > self.trace_limit:
                 raise RuntimeError("trace exceeds configured limit")
+
+            cpu_total = sum(
+                allocation.reserved_bytes
+                for allocation in self._allocations.values()
+                if allocation.device == "cpu"
+            )
+            if cpu_total != self.cpu_bytes:
+                raise RuntimeError("CPU allocation and byte indexes disagree")
+
+            used = 0
+            free = 0
+            forgotten = 0
+            for block in self._blocks:
+                if block.size <= 0:
+                    raise RuntimeError("GPU block size is not positive")
+                if block.forgotten and block.allocation_id is not None:
+                    raise RuntimeError("forgotten block still has an allocation")
+                if block.forgotten:
+                    forgotten += block.size
+                elif block.free:
+                    free += block.size
+                else:
+                    used += block.size
+            if used + free + forgotten != reserved:
+                raise RuntimeError("GPU block accounting does not balance")
 
             block_ids = {
                 block.allocation_id

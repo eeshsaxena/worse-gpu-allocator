@@ -24,6 +24,13 @@
 - Fixed a reference allocator cross-free state corruption edge case.
 - Hardened CI with current Node 24 action lines, read-only permissions, and a timeout.
 
+## 0.5.0
+
+- Added deeper accounting invariants and a hard trace retention limit.
+- Rejected non-finite CLI delays such as `NaN` and `Infinity`.
+- Expanded adversarial and randomized testing coverage.
+- Fixed stale module version metadata before distribution.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.

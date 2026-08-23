@@ -41,6 +41,8 @@ physical CUDA memory.
 | NFR-05 | Keep the public API small and backward compatible within the 0.x release line. | README API example and changelog |
 | NFR-06 | Keep trace retention bounded by explicit configuration. | `trace_limit` validation and trace tests |
 | NFR-07 | Reject invalid CLI values before starting a workload. | CLI validation tests |
+| NFR-08 | Bound trace retention with a hard maximum and preserve balanced accounting under randomized workloads. | Fuzz and invariant tests |
+| NFR-09 | Keep the module version synchronized with package release metadata. | Version regression test |
 
 ## 5. Out of scope
 

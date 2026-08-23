@@ -5,13 +5,20 @@ import sys
 import unittest
 
 from benchmark import ReferenceGPUAllocator
-from worse_gpu_allocator import WorseGPUAllocator
+from worse_gpu_allocator import MAX_TRACE_LIMIT, WorseGPUAllocator, __version__
 
 
 ROOT = Path(__file__).parent
 
 
 class RobustnessTests(unittest.TestCase):
+    def test_module_version_matches_current_release(self) -> None:
+        self.assertEqual(__version__, "0.5.0")
+
+    def test_trace_limit_has_a_hard_cap(self) -> None:
+        with self.assertRaises(ValueError):
+            WorseGPUAllocator(trace_limit=MAX_TRACE_LIMIT + 1)
+
     def test_randomized_workloads_preserve_invariants(self) -> None:
         for seed in range(20):
             with self.subTest(seed=seed):
@@ -75,7 +82,18 @@ class RobustnessTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("must be positive", result.stderr)
 
+    def test_cli_rejects_non_finite_delay(self) -> None:
+        for value in ("nan", "inf", "-inf"):
+            with self.subTest(value=value):
+                result = subprocess.run(
+                    [sys.executable, "demo.py", "--steps", "1", f"--delay={value}"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("must be finite", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
-
