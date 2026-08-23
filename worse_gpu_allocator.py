@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from threading import RLock
 from typing import Literal
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 MAX_TRACE_LIMIT = 1_000_000
 __all__ = [
     "MAX_TRACE_LIMIT",
@@ -105,21 +105,49 @@ class WorseGPUAllocator:
         if trace_limit > MAX_TRACE_LIMIT:
             raise ValueError(f"trace_limit cannot exceed {MAX_TRACE_LIMIT}")
 
-        self.gpu_capacity = gpu_capacity
-        self.gpu_probability = gpu_probability
-        self.forget_probability = forget_probability
-        self.fallback_on_oom = fallback_on_oom
-        self.max_request_bytes = max_request_bytes
-        self.trace_limit = trace_limit
+        self._gpu_capacity = gpu_capacity
+        self._gpu_probability = gpu_probability
+        self._forget_probability = forget_probability
+        self._fallback_on_oom = fallback_on_oom
+        self._max_request_bytes = max_request_bytes
+        self._trace_limit = trace_limit
         self._random = random.Random(seed)
         self._blocks: list[Block] = []
         self._allocations: dict[int, Allocation] = {}
         self._next_id = 1
-        self.cpu_bytes = 0
+        self._cpu_bytes = 0
         self._lock = RLock()
         self._owner_token = object()
         self._trace_events: list[TraceEvent] = []
         self._trace_sequence = 0
+
+    @property
+    def gpu_capacity(self) -> int:
+        return self._gpu_capacity
+
+    @property
+    def gpu_probability(self) -> float:
+        return self._gpu_probability
+
+    @property
+    def forget_probability(self) -> float:
+        return self._forget_probability
+
+    @property
+    def fallback_on_oom(self) -> bool:
+        return self._fallback_on_oom
+
+    @property
+    def max_request_bytes(self) -> int:
+        return self._max_request_bytes
+
+    @property
+    def trace_limit(self) -> int:
+        return self._trace_limit
+
+    @property
+    def cpu_bytes(self) -> int:
+        return self._cpu_bytes
 
     def allocate(self, requested_bytes: int) -> Allocation:
         """Reserve memory, occasionally on the GPU, and return its handle."""
@@ -198,7 +226,7 @@ class WorseGPUAllocator:
             self._allocations.pop(allocation.allocation_id)
 
             if current.device == "cpu":
-                self.cpu_bytes -= current.reserved_bytes
+                self._cpu_bytes -= current.reserved_bytes
                 self._record_event(
                     {
                         "operation": "free",
@@ -348,7 +376,7 @@ class WorseGPUAllocator:
         )
         self._next_id += 1
         self._allocations[allocation.allocation_id] = allocation
-        self.cpu_bytes += requested_bytes
+        self._cpu_bytes += requested_bytes
         self._record_event(
             {
                 "operation": "allocate",

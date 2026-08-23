@@ -37,6 +37,11 @@
 - Added regression coverage for runaway workload rejection.
 - Fixed module and package version metadata to `0.6.0`.
 
+## 0.7.0
+
+- Made allocator configuration and CPU accounting read-only after construction.
+- Added mutation-attack regression coverage.
+
 ## 0.1.0
 
 - Added a seeded GPU and CPU allocation simulator.

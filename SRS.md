@@ -44,6 +44,7 @@ physical CUDA memory.
 | NFR-08 | Bound trace retention with a hard maximum and preserve balanced accounting under randomized workloads. | Fuzz and invariant tests |
 | NFR-09 | Keep the module version synchronized with package release metadata. | Version regression test |
 | NFR-10 | Bound CLI and programmatic benchmark workloads to prevent runaway execution. | Workload cap tests |
+| NFR-11 | Keep allocator configuration and accounting read-only after construction. | Configuration mutation tests |
 
 ## 5. Out of scope
 

@@ -19,7 +19,7 @@ ROOT = Path(__file__).parent
 
 class RobustnessTests(unittest.TestCase):
     def test_module_version_matches_current_release(self) -> None:
-        self.assertEqual(__version__, "0.6.0")
+        self.assertEqual(__version__, "0.7.0")
         metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
         match = re.search(r'^version = "([^"]+)"$', metadata, re.MULTILINE)
         if match is None:
@@ -29,6 +29,21 @@ class RobustnessTests(unittest.TestCase):
     def test_trace_limit_has_a_hard_cap(self) -> None:
         with self.assertRaises(ValueError):
             WorseGPUAllocator(trace_limit=MAX_TRACE_LIMIT + 1)
+
+    def test_configuration_and_accounting_are_read_only(self) -> None:
+        allocator = WorseGPUAllocator(seed=1)
+        for name, value in (
+            ("gpu_capacity", 1),
+            ("gpu_probability", 0),
+            ("forget_probability", 0),
+            ("fallback_on_oom", False),
+            ("max_request_bytes", 1),
+            ("trace_limit", 1),
+            ("cpu_bytes", 1),
+        ):
+            with self.subTest(name=name), self.assertRaises(AttributeError):
+                setattr(allocator, name, value)
+        allocator.validate_invariants()
 
     def test_randomized_workloads_preserve_invariants(self) -> None:
         for seed in range(20):
